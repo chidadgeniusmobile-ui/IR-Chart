@@ -3,7 +3,7 @@
   "expo": {
     "name": "IR-Chart",
     "slug": "ir-chart",
-    "version": "1.0.0",
+    "scheme": "irchart"
     "android": {
       "package": "com.irchart.app"
     },
