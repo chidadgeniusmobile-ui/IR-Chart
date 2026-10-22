@@ -82,125 +82,116 @@ useEffect(() => {
   async function ensureProfile() {
     const user = session?.user;
     if (!user) return;
-    const name = user.user_metadata?.full_name || user.email?.split('@')[0] || user.phone || 'IR-Chart User';
-    await supabase.from('profiles').upsert({
-      id: user.id, full_name: name, username: (user.email?.split('@')[0] || user.phone || 'user').replace(/[^a-zA-Z0-9_]/g, '').slice(0, 24)
-    }, { onConflict: 'id', ignoreDuplicates: true });
-    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
-    setMyProfile(data);
-async function authenticate() {
-  if (!identifier.trim() || !password) {
-    return Alert.alert(
-      'Taarifa zinahitajika',
-      'Jaza email/namba ya simu na password.'
+
+    const name =
+      user.user_metadata?.full_name ||
+      user.email?.split('@')[0] ||
+      user.phone ||
+      'IR-Chart User';
+
+    const username = (
+      user.email?.split('@')[0] ||
+      user.phone ||
+      'user'
+    )
+      .replace(/[^a-zA-Z0-9_]/g, '')
+      .slice(0, 24) || 'user';
+
+    const { error: upsertError } = await supabase.from('profiles').upsert(
+      {
+        id: user.id,
+        full_name: name,
+        username,
+      },
+      { onConflict: 'id', ignoreDuplicates: true }
     );
+
+    if (upsertError) {
+      console.log('Profile upsert error:', upsertError.message);
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.log('Profile load error:', error.message);
+    } else {
+      setMyProfile(data);
+    }
   }
 
-  if (mode === 'signup' && !fullName.trim()) {
-    return Alert.alert('Jina linahitajika', 'Andika jina lako kamili.');
-  }
+  async function authenticate() {
+    if (!identifier.trim() || !password) {
+      return Alert.alert(
+        'Taarifa zinahitajika',
+        'Jaza email/namba ya simu na password.'
+      );
+    }
 
-  const key = identifier.trim();
-  let result;
+    if (mode === 'signup' && !fullName.trim()) {
+      return Alert.alert('Jina linahitajika', 'Andika jina lako kamili.');
+    }
 
-  try {
-    if (mode === 'signup') {
-      const options = {
-        data: { full_name: fullName.trim() },
-        ...(authMethod === 'email'
-          ? { emailRedirectTo: 'irchart://auth/callback' }
-          : {}),
-      };
+    const key = identifier.trim();
+    let result;
 
-      result = authMethod === 'email'
-        ? await supabase.auth.signUp({
-            email: key,
-            password,
-            options,
-          })
-        : await supabase.auth.signUp({
-            phone: key,
-            password,
-            options,
-          });
+    try {
+      if (mode === 'signup') {
+        const options = {
+          data: { full_name: fullName.trim() },
+          ...(authMethod === 'email'
+            ? { emailRedirectTo: 'irchart://auth/callback' }
+            : {}),
+        };
 
-      if (!result.error) {
-        Alert.alert(
-          'Usajili umetumwa',
+        result =
           authMethod === 'email'
-            ? 'Fungua email yako na uthibitishe akaunti.'
-            : 'Angalia SMS yako kwa maelekezo ya uthibitishaji.'
-        );
+            ? await supabase.auth.signUp({
+                email: key,
+                password,
+                options,
+              })
+            : await supabase.auth.signUp({
+                phone: key,
+                password,
+                options,
+              });
+
+        if (!result.error) {
+          Alert.alert(
+            'Usajili umetumwa',
+            authMethod === 'email'
+              ? 'Fungua email yako na uthibitishe akaunti. Ikiwa link imeisha muda, omba nyingine.'
+              : 'Angalia SMS yako kwa maelekezo ya uthibitishaji.'
+          );
+        }
+      } else {
+        result =
+          authMethod === 'email'
+            ? await supabase.auth.signInWithPassword({
+                email: key,
+                password,
+              })
+            : await supabase.auth.signInWithPassword({
+                phone: key,
+                password,
+              });
       }
-    } else {
-      result = authMethod === 'email'
-        ? await supabase.auth.signInWithPassword({
-            email: key,
-            password,
-          })
-        : await supabase.auth.signInWithPassword({
-            phone: key,
-            password,
-          });
-    }
 
-    if (result.error) {
-      Alert.alert('Imeshindikana', result.error.message);
-    } else if (result.data?.session) {
-      setSession(result.data.session);
-    }
-  } catch (error) {
-    Alert.alert(
-      'Hitilafu',
-      error.message || 'Jaribu tena baada ya muda.'
-    );
-  }
-}
-};
-
-  result = authMethod === 'email'
-    ? await supabase.auth.signUp({
-        email: key,
-        password,
-        options,
-      })
-    : await supabase.auth.signUp({
-        phone: key,
-        password,
-        options,
-      });
-
-  if (!result.error) {
-    Alert.alert(
-      'Usajili umetumwa',
-      authMethod === 'email'
-        ? 'Fungua email yako na uthibitishe akaunti.'
-        : 'Angalia SMS yako kwa maelekezo ya uthibitishaji.'
-    );
-  }
-} else {
-  result = authMethod === 'email'
-    ? await supabase.auth.signInWithPassword({
-        email: key,
-        password,
-      })
-    : await supabase.auth.signInWithPassword({
-        phone: key,
-        password,
-      });
-}
-      if (!result.error) {
-        Alert.alert('Usajili umetumwa', authMethod === 'email'
-          ? 'Kama email confirmation imewashwa, fungua email yako uthibitishe akaunti.'
-          : 'Kama uthibitisho wa SMS umewekwa, ingiza OTP utakayotumiwa. Hakikisha SMS provider imesanidiwa Supabase.');
+      if (result.error) {
+        Alert.alert('Imeshindikana', result.error.message);
+      } else if (result.data?.session) {
+        setSession(result.data.session);
       }
-    } else {
-      result = authMethod === 'email'
-        ? await supabase.auth.signInWithPassword({ email: key, password })
-        : await supabase.auth.signInWithPassword({ phone: key, password });
+    } catch (error) {
+      Alert.alert(
+        'Hitilafu',
+        error?.message || 'Jaribu tena baada ya muda.'
+      );
     }
-    if (result.error) Alert.alert('Imeshindikana', result.error.message);
-    else if (result.data?.session) setSession(result.data.session);
   }
 
   async function loadPosts() {
