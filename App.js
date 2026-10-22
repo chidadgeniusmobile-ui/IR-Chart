@@ -91,17 +91,76 @@ useEffect(() => {
   }
 
   async function authenticate() {
-    if (!identifier.trim() || !password) return Alert.alert('Taarifa zinahitajika', 'Jaza email/namba ya simu na password.');
-    if (mode === 'signup' && !fullName.trim()) return Alert.alert('Jina linahitajika', 'Andika jina lako kamili.');
-    const key = identifier.trim();
-    let result;
+    
+async function authenticate() {
+  if (!identifier.trim() || !password) {
+    return Alert.alert(
+      'Taarifa zinahitajika',
+      'Jaza email/namba ya simu na password.'
+    );
+  }
+
+  if (mode === 'signup' && !fullName.trim()) {
+    return Alert.alert('Jina linahitajika', 'Andika jina lako kamili.');
+  }
+
+  const key = identifier.trim();
+  let result;
+
+  try {
     if (mode === 'signup') {
-  const options = {
-    data: { full_name: fullName.trim() },
-    ...(authMethod === 'email'
-      ? { emailRedirectTo: 'irchart://auth/callback' }
-      : {}),
-  };
+      const options = {
+        data: { full_name: fullName.trim() },
+        ...(authMethod === 'email'
+          ? { emailRedirectTo: 'irchart://auth/callback' }
+          : {}),
+      };
+
+      result = authMethod === 'email'
+        ? await supabase.auth.signUp({
+            email: key,
+            password,
+            options,
+          })
+        : await supabase.auth.signUp({
+            phone: key,
+            password,
+            options,
+          });
+
+      if (!result.error) {
+        Alert.alert(
+          'Usajili umetumwa',
+          authMethod === 'email'
+            ? 'Fungua email yako na uthibitishe akaunti.'
+            : 'Angalia SMS yako kwa maelekezo ya uthibitishaji.'
+        );
+      }
+    } else {
+      result = authMethod === 'email'
+        ? await supabase.auth.signInWithPassword({
+            email: key,
+            password,
+          })
+        : await supabase.auth.signInWithPassword({
+            phone: key,
+            password,
+          });
+    }
+
+    if (result.error) {
+      Alert.alert('Imeshindikana', result.error.message);
+    } else if (result.data?.session) {
+      setSession(result.data.session);
+    }
+  } catch (error) {
+    Alert.alert(
+      'Hitilafu',
+      error.message || 'Jaribu tena baada ya muda.'
+    );
+  }
+}
+};
 
   result = authMethod === 'email'
     ? await supabase.auth.signUp({
