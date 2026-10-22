@@ -96,14 +96,44 @@ useEffect(() => {
     const key = identifier.trim();
     let result;
     if (mode === 'signup') {
-      const options = {
-  data: { full_name: fullName.trim() },
-  ...(authMethod === 'email'
-    ? { emailRedirectTo: 'irchart://auth/callback' }
-    : {}),
-};
-        ? await supabase.auth.signUp({ email: key, password, options })
-        : await supabase.auth.signUp({ phone: key, password, options });
+  const options = {
+    data: { full_name: fullName.trim() },
+    ...(authMethod === 'email'
+      ? { emailRedirectTo: 'irchart://auth/callback' }
+      : {}),
+  };
+
+  result = authMethod === 'email'
+    ? await supabase.auth.signUp({
+        email: key,
+        password,
+        options,
+      })
+    : await supabase.auth.signUp({
+        phone: key,
+        password,
+        options,
+      });
+
+  if (!result.error) {
+    Alert.alert(
+      'Usajili umetumwa',
+      authMethod === 'email'
+        ? 'Fungua email yako na uthibitishe akaunti.'
+        : 'Angalia SMS yako kwa maelekezo ya uthibitishaji.'
+    );
+  }
+} else {
+  result = authMethod === 'email'
+    ? await supabase.auth.signInWithPassword({
+        email: key,
+        password,
+      })
+    : await supabase.auth.signInWithPassword({
+        phone: key,
+        password,
+      });
+}
       if (!result.error) {
         Alert.alert('Usajili umetumwa', authMethod === 'email'
           ? 'Kama email confirmation imewashwa, fungua email yako uthibitishe akaunti.'
