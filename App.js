@@ -6,7 +6,7 @@ import {
   TouchableOpacity, View
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { supabase } from './lib/supabase';
+import { supabase } from './supabase';
 
 const BLUE = '#1769E0';
 const LIGHT = '#F3F7FF';
