@@ -1,15 +1,16 @@
+
 {
   "expo": {
     "name": "IR-Chart",
     "slug": "ir-chart",
     "version": "1.0.0",
-    "orientation": "portrait",
-    "userInterfaceStyle": "light",
     "android": {
       "package": "com.irchart.app"
     },
-    "plugins": [
-      "expo-image-picker"
-    ]
+    "extra": {
+      "eas": {
+        "projectId": "e3b7b72e-9993-4575-b377-ed14a5671980"
+      }
+    }
   }
 }
