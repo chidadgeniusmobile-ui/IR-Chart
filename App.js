@@ -96,8 +96,12 @@ useEffect(() => {
     const key = identifier.trim();
     let result;
     if (mode === 'signup') {
-      const options = { data: { full_name: fullName.trim() } };
-      result = authMethod === 'email'
+      const options = {
+  data: { full_name: fullName.trim() },
+  ...(authMethod === 'email'
+    ? { emailRedirectTo: 'irchart://auth/callback' }
+    : {}),
+};
         ? await supabase.auth.signUp({ email: key, password, options })
         : await supabase.auth.signUp({ phone: key, password, options });
       if (!result.error) {
