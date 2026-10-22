@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
+import * as Linking from 'expo-linking'; {
   ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Platform,
   SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput,
   TouchableOpacity, View
