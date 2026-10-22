@@ -39,7 +39,34 @@ export default function App() {
     });
     return () => listener.subscription.unsubscribe();
   }, []);
+useEffect(() => {
+  async function handleAuthUrl(url) {
+    if (!url) return;
 
+    const parsed = Linking.parse(url);
+    const code = parsed.queryParams?.code;
+
+    if (typeof code === 'string') {
+      const { error } =
+        await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        Alert.alert(
+          'Uthibitishaji umeshindikana',
+          'Link inaweza kuwa imekwisha muda. Omba link mpya ya uthibitishaji.'
+        );
+      }
+    }
+  }
+
+  const subscription = Linking.addEventListener('url', ({ url }) => {
+    handleAuthUrl(url);
+  });
+
+  Linking.getInitialURL().then(handleAuthUrl);
+
+  return () => subscription.remove();
+}, []);
   useEffect(() => {
     if (session?.user) {
       ensureProfile();
