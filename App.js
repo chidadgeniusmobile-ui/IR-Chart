@@ -88,10 +88,6 @@ useEffect(() => {
     }, { onConflict: 'id', ignoreDuplicates: true });
     const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
     setMyProfile(data);
-  }
-
-  async function authenticate() {
-    
 async function authenticate() {
   if (!identifier.trim() || !password) {
     return Alert.alert(
