@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "IR-Chart",
+    "slug": "ir-chart",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.irchart.app"
+    },
+    "plugins": [
+      "expo-image-picker"
+    ]
+  }
+}
